@@ -12,6 +12,7 @@ import (
 	"github.com/shadow1ng/fscan/common/debug"
 	"github.com/shadow1ng/fscan/common/i18n"
 	"github.com/shadow1ng/fscan/core"
+	"github.com/shadow1ng/fscan/ext"
 
 	// 导入统一插件系统
 	_ "github.com/shadow1ng/fscan/plugins/local"
@@ -28,10 +29,16 @@ func run() int {
 	debug.Start()
 	defer debug.Stop()
 
+	ext.CleanOldBinary()
+	if handled, exitCode := ext.PreHandleCLI(&os.Args); handled {
+		return exitCode
+	}
+
 	// 解析命令行参数
 	var info common.HostInfo
 	if err := common.Flag(&info); err != nil {
 		if err == common.ErrShowHelp {
+			ext.PrintQuickFooter()
 			return 0 // 显示帮助是正常退出
 		}
 		common.LogError(i18n.Tr("param_error", err))
